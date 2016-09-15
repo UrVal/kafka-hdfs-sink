@@ -1,5 +1,4 @@
 import kafka.serializer.StringDecoder
-import spark.implicits._
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka._
 import org.apache.spark.SparkConf
@@ -48,21 +47,12 @@ if (format=="text") {
 		}
     })
 }
-if (format=="text") {	
-    messages.foreachRDD( rdd =>{
-		if(!rdd.partitions.isEmpty)
-		{
-		 	val timestamp: Long = System.currentTimeMillis / 1000
-		 	rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
-		}
-    })
-}
 if (format=="parquet") {	
     messages.foreachRDD( rdd =>{
 		if(!rdd.partitions.isEmpty)
 		{
 		 	val timestamp: Long = System.currentTimeMillis / 1000
-		 	rdd.map(_._2).toDF.write.parquet(destinationUrl+timestamp)
+		 	rdd.map(_._2).saveAsParquet(destinationUrl+timestamp)
 		}
     })
 }
@@ -71,7 +61,7 @@ if (format=="avro") {
 		if(!rdd.partitions.isEmpty)
 		{
 		 	val timestamp: Long = System.currentTimeMillis / 1000
-		 	rdd.map(_._2).toDF.write.avro(destinationUrl+timestamp)
+		 	rdd.map(_._2).saveAsAvro(destinationUrl+timestamp)
 		}
     })
 }
