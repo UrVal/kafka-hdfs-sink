@@ -1,5 +1,5 @@
 import kafka.serializer.StringDecoder
-import org.apache.spark.sql.SQLContext.implicits._
+import sqlContext.implicits._
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka._
 import org.apache.spark.SparkConf
