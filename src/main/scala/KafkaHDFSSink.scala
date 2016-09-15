@@ -62,7 +62,7 @@ if (format=="parquet") {
 		if(!rdd.partitions.isEmpty)
 		{
 		 	val timestamp: Long = System.currentTimeMillis / 1000
-		 	rdd.map(_._2).write.parquet(destinationUrl+timestamp)
+		 	rdd.map(_._2).toDF.write.parquet(destinationUrl+timestamp)
 		}
     })
 }
@@ -71,7 +71,7 @@ if (format=="avro") {
 		if(!rdd.partitions.isEmpty)
 		{
 		 	val timestamp: Long = System.currentTimeMillis / 1000
-		 	rdd.map(_._2).write.avro(destinationUrl+timestamp)
+		 	rdd.map(_._2).toDF.write.avro(destinationUrl+timestamp)
 		}
     })
 }
