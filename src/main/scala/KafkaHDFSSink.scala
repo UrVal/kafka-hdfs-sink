@@ -52,7 +52,9 @@ if (format=="parquet") {
 		if(!rdd.partitions.isEmpty)
 		{
 		 	val timestamp: Long = System.currentTimeMillis / 1000
-		 	rdd.map(_._2).saveAsParquet(destinationUrl+timestamp)
+		 	val sqlContext = new SQLContext(sc) 
+			import sqlContext.implicits._
+		 	rdd.map(_._2).toDF().write.parquet(destinationUrl+timestamp)
 		}
     })
 }
@@ -61,7 +63,9 @@ if (format=="avro") {
 		if(!rdd.partitions.isEmpty)
 		{
 		 	val timestamp: Long = System.currentTimeMillis / 1000
-		 	rdd.map(_._2).saveAsAvro(destinationUrl+timestamp)
+		 	val sqlContext = new SQLContext(sc) 
+			import sqlContext.implicits._
+		 	rdd.map(_._2).toDF().write.avro(destinationUrl+timestamp)
 		}
     })
 }
