@@ -13,5 +13,5 @@ sbt package
 
 To submit this job use:
 <code>
-/opt/spark-1.6.1-bin-hadoop2.6/bin/spark-submit --name KafkaHDFSSink --class KafkaHDFSSink  --packages org.apache.spark:spark-streaming-kafka_2.10:1.6.1 /tmp/kafka-consumer-serializer_2.10-1.0.jar <BROKER_FQDN_1>:9092,<BROKER_FQDN_2>:9092,<BROKER_FQDN_N>:9092 <TOPIC_NAME> <HDFS:///path/to/write/files>
+/opt/spark-1.6.1-bin-hadoop2.6/bin/spark-submit --name KafkaHDFSSink --class KafkaHDFSSink  --packages org.apache.spark:spark-streaming-kafka_2.10:1.6.1 /tmp/kafka-consumer-serializer_2.10-1.0.jar BROKER_FQDN_1:9092,BROKER_FQDN_2:9092,BROKER_FQDN_N:9092 TOPIC_NAME <HDFS:///path/to/write/files>
 </code>
