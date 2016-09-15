@@ -7,12 +7,13 @@ import org.apache.spark.SparkConf
 object KafkaHDFSSink{
 
   def main(args: Array[String]): Unit = {
-   if (args.length != 3) {
+   if (args.length != 4) {
       System.err.println(s"""
         |Usage: KafkaHDFSSink <brokers> <topics> <destination-url>
         |  <brokers> is a list of one or more Kafka brokers
         |  <topics> is a list of one or more kafka topics to consume from
         |  <destination-url> is the url prefix (eg:in hdfs) into which to save the fragments. Fragment names will be suffixed with the timestamp. The fragments are directories. 
+        |  <format> is the output format. Accepted formats are: text, avro, parquet. 
         """.stripMargin)
       System.exit(1)
     }
@@ -26,7 +27,7 @@ object KafkaHDFSSink{
       .set("spark.storage.memoryFraction", "1")
       .set("spark.streaming.unpersist", "true")
 
-     val Array(brokers, topics, destinationUrl) = args
+     val Array(brokers, topics, destinationUrl, format) = args
 
 
     val sparkConf = new SparkConf().setAppName("KafkaConsumer")
@@ -38,6 +39,7 @@ object KafkaHDFSSink{
     val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
       ssc, kafkaParams, topicsSet)
 
+if (format=="text") {	
     messages.foreachRDD( rdd =>{
 		if(!rdd.partitions.isEmpty)
 		{
@@ -45,6 +47,36 @@ object KafkaHDFSSink{
 		 	rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
 		}
     })
+}
+if (format=="text") {	
+    messages.foreachRDD( rdd =>{
+		if(!rdd.partitions.isEmpty)
+		{
+		 	val timestamp: Long = System.currentTimeMillis / 1000
+		 	rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
+		}
+    })
+}
+if (format=="parquet") {	
+    messages.foreachRDD( rdd =>{
+		if(!rdd.partitions.isEmpty)
+		{
+		 	val timestamp: Long = System.currentTimeMillis / 1000
+		 	rdd.map(_._2).write.parquet(destinationUrl+timestamp)
+		}
+    })
+}
+if (format=="avro") {	
+    messages.foreachRDD( rdd =>{
+		if(!rdd.partitions.isEmpty)
+		{
+		 	val timestamp: Long = System.currentTimeMillis / 1000
+		 	rdd.map(_._2).write.avro(destinationUrl+timestamp)
+		}
+    })
+}
+
+
 
     
     ssc.checkpoint(destinationUrl+"__checkpoint")
