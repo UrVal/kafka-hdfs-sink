@@ -52,21 +52,12 @@ if (format=="parquet") {
 		if(!rdd.partitions.isEmpty)
 		{
 		 	val timestamp: Long = System.currentTimeMillis / 1000
-			import sqlContext.implicits._
-		 	rdd.map(_._2).toDF().write.parquet(destinationUrl+timestamp)
+		 	rdd.toDF
+		 	//rdd.map(_._2).toDF().write.parquet(destinationUrl+timestamp)
 		}
     })
 }
-if (format=="avro") {	
-    messages.foreachRDD( rdd =>{
-		if(!rdd.partitions.isEmpty)
-		{
-		 	val timestamp: Long = System.currentTimeMillis / 1000
-			import sqlContext.implicits._
-		 	rdd.map(_._2).toDF().write.avro(destinationUrl+timestamp)
-		}
-    })
-}
+
 
 
 
