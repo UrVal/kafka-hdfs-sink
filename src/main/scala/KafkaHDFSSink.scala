@@ -11,8 +11,7 @@ object KafkaHDFSSink{
         |Usage: KafkaHDFSSink <brokers> <topics> <destination-url>
         |  <brokers> is a list of one or more Kafka brokers
         |  <topics> is a list of one or more kafka topics to consume from
-        |  <destination-url> is the url prefix (eg:in hdfs) into which to save the fragments. Fragment names will be suffixed with the timestamp. The fragments are directories. 
-        |  <format> is the output format. Accepted formats are: text, avro, parquet. 
+        |  <destination-url> is the url prefix (eg:in hdfs) into which to save the fragments. Fragment names will be suffixed with the timestamp. The fragments are directories.(eg: hdfs:///temp/kafka_files/)  
         """.stripMargin)
       System.exit(1)
     }
@@ -26,7 +25,7 @@ object KafkaHDFSSink{
       .set("spark.storage.memoryFraction", "1")
       .set("spark.streaming.unpersist", "true")
 
-     val Array(brokers, topics, destinationUrl, format) = args
+     val Array(brokers, topics, destinationUrl) = args
 
 
     val sparkConf = new SparkConf().setAppName("KafkaConsumer")
@@ -38,7 +37,7 @@ object KafkaHDFSSink{
     val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
       ssc, kafkaParams, topicsSet)
 
-if (format=="text") {	
+	
     messages.foreachRDD( rdd =>{
 		if(!rdd.partitions.isEmpty)
 		{
@@ -46,28 +45,11 @@ if (format=="text") {
 		 	rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
 		}
     })
-}
-if (format=="parquet") {	
-    messages.foreachRDD( rdd =>{
-		if(!rdd.partitions.isEmpty)
-		{
-		 	val timestamp: Long = System.currentTimeMillis / 1000
-		 	rdd.toDF
-		 	//rdd.map(_._2).toDF().write.parquet(destinationUrl+timestamp)
-		}
-    })
-}
-
-
-
-
     
     ssc.checkpoint(destinationUrl+"__checkpoint")
 
     ssc.start()
     ssc.awaitTermination()
-
-
   }
 
 }
