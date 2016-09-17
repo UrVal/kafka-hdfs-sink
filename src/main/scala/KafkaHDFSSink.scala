@@ -6,7 +6,7 @@ import org.apache.spark.SparkConf
 object KafkaHDFSSink{
 
   def main(args: Array[String]): Unit = {
-   if (args.length != 4) {
+   if (args.length != 3) {
       System.err.println(s"""
         |Usage: KafkaHDFSSink <brokers> <topics> <destination-url>
         |  <brokers> is a list of one or more Kafka brokers
