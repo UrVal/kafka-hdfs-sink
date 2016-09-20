@@ -31,15 +31,15 @@ object KafkaHDFSSink{
       .set("spark.rdd.compress","true")
       .set("spark.storage.memoryFraction", "1")
       .set("spark.streaming.unpersist", "true")
-	  .set("spark.driver.allowMultipleContexts", "true")
+	  //.set("spark.driver.allowMultipleContexts", "true")
 
      val Array(brokers, topics, destinationUrl, offset, outputformat) = args
 
 
     val sparkConf = new SparkConf().setAppName("KafkaConsumer_"+topics)
-    val ssc = new StreamingContext(sparkConf, Seconds(2))
+    val sc = new SparkContext(sparkConf)
+	val ssc = new StreamingContext(sc, Seconds(2))
 	//SparkSQL
-	val sc = new SparkContext(sparkConf)
 	val sqlContext = new SQLContext(sc)
 	
 	val topicsSet = topics.split(",").toSet
