@@ -31,6 +31,7 @@ object KafkaHDFSSink{
       .set("spark.rdd.compress","true")
       .set("spark.storage.memoryFraction", "1")
       .set("spark.streaming.unpersist", "true")
+	  .set("spark.driver.allowMultipleContexts", "true")
 
      val Array(brokers, topics, destinationUrl, offset, outputformat) = args
 
