@@ -7,6 +7,7 @@ import com.databricks.spark.avro._
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.sql.SQLContext
+import scala.util.control.NonFatal
 
 object KafkaHDFSSink{
 
@@ -48,44 +49,34 @@ object KafkaHDFSSink{
     val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
       ssc, kafkaParams, topicsSet)
 
-	  if(outputformat == "parquet") {
     	  messages.foreachRDD( rdd =>{
 			  if(!rdd.partitions.isEmpty)
 			  {	
 		 		  val timestamp: Long = System.currentTimeMillis / 1000
-				  val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
-				  val df = json_rdd.toDF()
-				  df.write.parquet(destinationUrl+timestamp)
-		 		  //rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
-			
+				  if(outputformat == "parquet") {
+					  try {
+				  		  val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
+				  		  val df = json_rdd.toDF()
+				  		  df.write.parquet(destinationUrl+timestamp)
+			  				} catch {
+							case NonFatal(t) => println("Waiting for more data")
+							}
+					}
+			  	if(outputformat == "avro") {
+				  	try {
+			  			val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
+			  	  		val df = json_rdd.toDF()
+			  	  		df.write.parquet(destinationUrl+timestamp)
+		  	  			} catch {
+						case NonFatal(t) => println("Waiting for more data")
+						}
+					}
+				if(outputformat == "text") {
+  				  	rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
+					}
 		}
     })
-}
-	  if(outputformat == "avro") {
-    	  messages.foreachRDD( rdd =>{
-			  if(!rdd.partitions.isEmpty)
-			  {	
-		 		  val timestamp: Long = System.currentTimeMillis / 1000
-				  val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
-				  val df = json_rdd.toDF()
-				  df.write.avro(destinationUrl+timestamp)
-		 		  //rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
-			
-		}
-    })
-}
-	  if(outputformat == "text") {
-    	  messages.foreachRDD( rdd =>{
-			  if(!rdd.partitions.isEmpty)
-			  {	
-		 		  val timestamp: Long = System.currentTimeMillis / 1000
-				  rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
-			
-		}
-    })
-}
-	
-    
+
     ssc.checkpoint(destinationUrl+"__checkpoint")
 
     ssc.start()
