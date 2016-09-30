@@ -14,12 +14,12 @@ object KafkaHDFSSink{
   def main(args: Array[String]): Unit = {
    if (args.length != 5) {
       System.err.println(s"""
-        |Usage: KafkaHDFSSink <brokers> <topics> <destination-url>
+        |Usage: KafkaHDFSSink <brokers> <topics> <destination-url> <offset_to_start_from> <outputformat>
         |  <brokers> is a list of one or more Kafka brokers
-        |  <topics> is a list of one or more kafka topics to consume from
+        |  <topics> is the topic to read from
         |  <destination-url> is the url prefix (eg:in hdfs) into which to save the fragments. Fragment names will be suffixed with the timestamp. The fragments are directories.(eg: hdfs:///temp/kafka_files/)  
         |  <offset_to_start_from> is the position from where the comsumer should start to receive data. Choose between: smallest and largest
-		|  <output_format> is the file format to output the files to. Choose between: parquet, avro and text.
+		|  <output_format> is the file format to output the files to. Choose between: parquet, avro and json.
 		""".stripMargin)
       System.exit(1)
     }
@@ -57,7 +57,7 @@ object KafkaHDFSSink{
 					  try {
 				  		  val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
 				  		  val df = json_rdd.toDF()
-				  		  df.write.parquet(destinationUrl+timestamp)
+				  		  df.writemode(SaveMode.Append).parquet(destinationUrl)
 			  				} catch {
 							case NonFatal(t) => println("Waiting for more data")
 							}
@@ -66,13 +66,13 @@ object KafkaHDFSSink{
 				  	try {
 			  			val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
 			  	  		val df = json_rdd.toDF()
-			  	  		df.write.parquet(destinationUrl+timestamp)
+			  	  		df.write.mode(SaveMode.Append).avro(destinationUrl)
 		  	  			} catch {
 						case NonFatal(t) => println("Waiting for more data")
 						}
 					}
-				if(outputformat == "text") {
-  				  	rdd.map(_._2).saveAsTextFile(destinationUrl+timestamp)
+				if(outputformat == "json") {
+  				  	rdd.map(_._2).saveAsTextFile(destinationUrl+topics+"/clickstream-"+timestamp+".json")
 					}
 		}
     })
