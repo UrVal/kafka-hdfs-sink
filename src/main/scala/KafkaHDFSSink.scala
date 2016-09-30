@@ -57,7 +57,7 @@ object KafkaHDFSSink{
 					  try {
 				  		  val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
 				  		  val df = json_rdd.toDF()
-				  		  df.write.mode(SaveMode.Append).parquet(destinationUrl)
+				  		  df.write.mode("append").parquet(destinationUrl+topics)
 			  				} catch {
 							case NonFatal(t) => println("Waiting for more data")
 							}
@@ -66,7 +66,7 @@ object KafkaHDFSSink{
 				  	try {
 			  			val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
 			  	  		val df = json_rdd.toDF()
-			  	  		df.write.mode(SaveMode.Append).avro(destinationUrl)
+			  	  		df.write.mode("append").avro(destinationUrl+topics)
 		  	  			} catch {
 						case NonFatal(t) => println("Waiting for more data")
 						}
