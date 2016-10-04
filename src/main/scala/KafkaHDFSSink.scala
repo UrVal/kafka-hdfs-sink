@@ -83,6 +83,8 @@ object KafkaHDFSSink{
 				  		  							df.select(primarykey_string, "@timestamp").write.mode("append").parquet(destinationUrl+table_name_string+"/updated_records")
 				  		  							val updated_timestamp = sqlContext.read.parquet(destinationUrl+table_name_string+"/updated_records").groupBy(primarykey_string).agg(max("@timestamp") as "@timestamp")
 				  		  							updated_timestamp.write.mode("overwrite").parquet(destinationUrl+table_name_string+"/updated_records")
+				  		  						} else {
+				  		  							df.select(primarykey_string, "@timestamp").write.mode("append").parquet(destinationUrl+table_name_string+"/updated_records")
 				  		  						}
 
 				  		  						//write main Dataframe to parquet
