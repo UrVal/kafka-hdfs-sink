@@ -8,6 +8,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.sql.SQLContext
 import scala.util.control.NonFatal
+import scala.util.parsing.json._
 
 object KafkaHDFSSink{
 
