@@ -57,7 +57,7 @@ object KafkaHDFSSink{
 		 		  val timestamp: Long = System.currentTimeMillis / 1000
 				  if(outputformat == "parquet") {
 					  	//val test_json = json.loads(rdd.map(_._2))
-					  	val test_json = JSON.parseFull(rdd.map(_._2))
+					  	val test_json = JSON.parseFull(rdd.map(_._2).toString())
 					  	test_json match {
   							case None => rdd.map(_._2).saveAsTextFile(destinationUrl+"malformed_json_data-"+timestamp+".txt")
   							case Some(e) => try {
@@ -65,16 +65,16 @@ object KafkaHDFSSink{
 				  		  						val df = json_rdd.toDF()
 				  		  
 				  		  						//define table as String
-				  		  						val table_name_array = df.select($"@table").limit(1).collect()
+				  		  						val table_name_array = df.select("@table").limit(1).collect()
 				  		  						val table_name_string = table_name_array(0).toString().stripPrefix("[").stripSuffix("]").trim
 				  		  						//define schema_version as String
-				  		  						val schema_version_array = df.select($"@schema_version").limit(1).collect()
+				  		  						val schema_version_array = df.select("@schema_version").limit(1).collect()
 				  		  						val schema_version_string = schema_version_array(0).toString().stripPrefix("[").stripSuffix("]").trim
 				  		  						//define p_key as String
-				  		  						val primarykey_array = df.select($"@p_key").limit(1).collect()
+				  		  						val primarykey_array = df.select("@p_key").limit(1).collect()
 				  		  						val primarykey_string = primarykey_array(0).toString().stripPrefix("[").stripSuffix("]").trim
 				  		  						//define updated as String
-				  		  						val updated_array = df.select($"@update").limit(1).collect()
+				  		  						val updated_array = df.select("@update").limit(1).collect()
 				  		  						val updated_string = updated_array(0).toString().stripPrefix("[").stripSuffix("]").trim
 
 				  		  						//if record is an update, upload latest timestamp in small table
