@@ -91,7 +91,8 @@ object KafkaHDFSSink{
 				  		  						df.write.mode("append").parquet(destinationUrl+table_name_string+"/schema-version-"+schema_version_string)
 
 			  									} catch {
-														case NonFatal(t) => sqlContext.jsonRDD(rdd.map(_._2)).toDF().write.mode("append").parquet(destinationUrl+"malformed_schema_parquet/data-"+timestamp)
+														case NonFatal(t) => rdd.map(_._2).saveAsTextFile(destinationUrl+"unknown_schema/data-"+timestamp+".json")
+														//sqlContext.jsonRDD(rdd.map(_._2)).toDF().write.mode("append").parquet(destinationUrl+"malformed_schema_parquet/data-"+timestamp)
 														}
 										}	
 					//}
