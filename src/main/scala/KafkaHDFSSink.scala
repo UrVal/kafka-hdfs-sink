@@ -42,11 +42,13 @@ object KafkaHDFSSink{
 	val ssc = new StreamingContext(sc, Seconds(2))
 	//SparkSQL
 	val sqlContext = new SQLContext(sc)
+
+	val topicSet = topic.split(",").toSet
 	
     val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers, "auto.offset.reset" -> offset)
 
     val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
-      ssc, kafkaParams, topic)
+      ssc, kafkaParams, topicSet)
 
     	  messages.foreachRDD( rdd =>{
 			  if(!rdd.partitions.isEmpty)
