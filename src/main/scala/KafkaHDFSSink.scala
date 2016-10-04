@@ -57,11 +57,11 @@ object KafkaHDFSSink{
 			  {	
 		 		  val timestamp: Long = System.currentTimeMillis / 1000
 				  if(outputformat == "parquet") {
-					  	//val test_json = json.loads(rdd.map(_._2))
-					  	val test_json = JSON.parseFull(rdd.map(_._2).toString())
-					  	test_json match {
-  							case None => rdd.map(_._2).saveAsTextFile(destinationUrl+"malformed_json_data/data-"+timestamp+".txt")
-  							case Some(e) => try {
+					  	//val test_json = JSON.parseFull(rdd.map(_._2).toString())
+					  	//test_json match {
+  							//case None => rdd.map(_._2).saveAsTextFile(destinationUrl+"malformed_json_data/data-"+timestamp+".txt")
+  							//case Some(e) => 
+  							try {
 					  	  						val json_rdd = sqlContext.jsonRDD(rdd.map(_._2))
 				  		  						val df = json_rdd.toDF()
 				  		  
@@ -92,7 +92,7 @@ object KafkaHDFSSink{
 														case NonFatal(t) => sqlContext.jsonRDD(rdd.map(_._2)).toDF().write.mode("append").parquet(destinationUrl+"malformed_schema_parquet/data-"+timestamp)
 														}
 										}	
-					}
+					//}
 
 
 					
@@ -111,7 +111,7 @@ object KafkaHDFSSink{
 		}
     })
 
-    ssc.checkpoint("hdfs:///"+topic+"__checkpoint")
+    ssc.checkpoint("hdfs:///generic_topic__checkpoint")
 
     ssc.start()
     ssc.awaitTermination()
