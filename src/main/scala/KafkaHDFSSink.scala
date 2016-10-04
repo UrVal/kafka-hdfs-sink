@@ -60,7 +60,7 @@ object KafkaHDFSSink{
 					  	//val test_json = json.loads(rdd.map(_._2))
 					  	val test_json = JSON.parseFull(rdd.map(_._2).toString())
 					  	test_json match {
-  							case None => rdd.map(_._2).saveAsTextFile(destinationUrl+"malformed_json_data-"+timestamp+".txt")
+  							case None => rdd.map(_._2).saveAsTextFile(destinationUrl+"malformed_json_data/data-"+timestamp+".txt")
   							case Some(e) => try {
 					  	  						val json_rdd = sqlContext.jsonRDD(rdd.map(_._2))
 				  		  						val df = json_rdd.toDF()
@@ -89,7 +89,7 @@ object KafkaHDFSSink{
 				  		  						df.write.mode("append").parquet(destinationUrl+table_name_string+"/schema-version-"+schema_version_string)
 
 			  									} catch {
-														case NonFatal(t) => sqlContext.jsonRDD(rdd.map(_._2)).toDF().write.mode("append").parquet(destinationUrl+"malformed_schema_parquet-"+timestamp)
+														case NonFatal(t) => sqlContext.jsonRDD(rdd.map(_._2)).toDF().write.mode("append").parquet(destinationUrl+"malformed_schema_parquet/data-"+timestamp)
 														}
 										}	
 					}
