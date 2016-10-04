@@ -57,7 +57,7 @@ object KafkaHDFSSink{
 					  		val test_json = json.loads(rdd.map(_._2))
 					  		val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
 					  } catch {
-					  		rdd.map(_._2).saveAsTextFile(destinationUrl+"/malformed_kafka_data-"+timestamp+".txt")
+					  		case NonFatal(t) => rdd.map(_._2).saveAsTextFile(destinationUrl+"malformed_json_data-"+timestamp+".txt")
 					  }
 					  try {
 				  		  val df = json_rdd.toDF()
@@ -67,14 +67,10 @@ object KafkaHDFSSink{
 				  		  //define schema_version as String
 				  		  val schema_version_array = df.select($"@schema_version").limit(1).collect()
 				  		  val schema_version_string = schema_version_array(0).toString().stripPrefix("[").stripSuffix("]").trim
-				  		  df.write.mode("append").parquet(destinationUrl+table_name_string+"/schema-version-"+schema_version_string)
 				  		  //define p_key as String
 				  		  val primarykey_array = df.select($"@p_key").limit(1).collect()
 				  		  val primarykey_string = primarykey_array(0).toString().stripPrefix("[").stripSuffix("]").trim
 				  		  //define updated as String
-				  		  val updated_array = df.select($"@update").limit(1).collect()
-				  		  val updated_string = updated_array(0).toString().stripPrefix("[").stripSuffix("]").trim
-				  		  //define timestamp as String
 				  		  val updated_array = df.select($"@update").limit(1).collect()
 				  		  val updated_string = updated_array(0).toString().stripPrefix("[").stripSuffix("]").trim
 
@@ -84,8 +80,12 @@ object KafkaHDFSSink{
 				  		  val updated_timestamp = sqlContext.read.parquet(destinationUrl+table_name_string+"/updated_records").groupBy(primarykey_string).agg(max($"@timestamp") as "@timestamp")
 				  		  updated_timestamp.write.mode("overwrite").parquet(destinationUrl+table_name_string+"/updated_records")
 				  		  }
+
+				  		  //write main Dataframe to parquet
+				  		  df.write.mode("append").parquet(destinationUrl+table_name_string+"/schema-version-"+schema_version_string)
+
 			  				} catch {
-							case NonFatal(t) => println("Waiting for more data")
+							case NonFatal(t) => df.write.mode("append").parquet(destinationUrl+"malformed_schema_parquet-"+timestamp)
 							}
 					}
 
