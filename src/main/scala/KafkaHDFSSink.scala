@@ -106,7 +106,7 @@ object KafkaHDFSSink{
 		}
     })
 
-    ssc.checkpoint("hdfs:///"+topics+"__checkpoint")
+    ssc.checkpoint("hdfs:///"+topic+"__checkpoint")
 
     ssc.start()
     ssc.awaitTermination()
