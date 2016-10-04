@@ -81,7 +81,7 @@ object KafkaHDFSSink{
 				  		  						//if record is an update, upload latest timestamp in small table
 				  		  						if (updated_string == "1") {
 				  		  							df.select(primarykey_string, "@timestamp").write.mode("append").parquet(destinationUrl+table_name_string+"/updated_records")
-				  		  							val updated_timestamp = sqlContext.read.parquet(destinationUrl+table_name_string+"/updated_records").groupBy(primarykey_string).agg(max($"@timestamp") as "@timestamp")
+				  		  							val updated_timestamp = sqlContext.read.parquet(destinationUrl+table_name_string+"/updated_records").groupBy(primarykey_string).agg(max("@timestamp") as "@timestamp")
 				  		  							updated_timestamp.write.mode("overwrite").parquet(destinationUrl+table_name_string+"/updated_records")
 				  		  						}
 
