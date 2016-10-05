@@ -5,9 +5,13 @@ Simple serialization of data from  Kafka to HDFS. Uses direct a direct connectio
 This branch assumes data in a generic topic comes from different database tables. It parses the data from the topic as JSON and looks for:
 
 <code>@table</code> -> Name of the table the data originates from. It's used to suffix the HDFS destination path with the table name.
+
 <code>@schema_version</code> -> This accounts for schema changes in the originating database, that might happen over time.
+
 <code>@p_key</code> -> primary key of the originating table
+
 <code>@update</code> -> it's a 0/1 flag that takes into account if data is an update
+
 <code>@timestamp</code> -> timestamp when the record was written in Kafka Topic
 
 For data that doesn't have this structure it will failback to write an unknown schema JSON file (hdfs:///destinationUrl+"unknown_schema/data-"+timestamp+".json")
@@ -17,9 +21,13 @@ Consumer can write in Parquet, Avro and JSON format, by appending data to the ex
 It takes the following input parameters when lunching the Spark Job:
 
 <code>brokers</code> is a list of one or more Kafka brokers 
+
 <code>topic</code> this is a generic topic to read from
-<code>destination-url</code> is the url prefix.Path will be suffixed with @table_name and @schema_version (eg:hdfs:///temp/kafka_files/) 
+
+<code>destination-url</code> is the url prefix.Path will be suffixed with @table_name and @schema_version (eg:hdfs:///temp/kafka_files/)
+
 <code>offset_to_start_from</code> is the position from where the comsumer should start to receive data. (smallest or largest)
+
 <code>output_format</code> is the file format to output the files to. Choose between: parquet, avro and json.
 
 In order to cope with the updated records the consumer also outputs a table with the primary key and latest timestamp. This can be used for a compaction batch job that can drop the old records from the main data in HDFS. 
