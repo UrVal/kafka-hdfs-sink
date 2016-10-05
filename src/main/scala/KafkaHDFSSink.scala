@@ -57,10 +57,6 @@ object KafkaHDFSSink{
 			  {	
 		 		  val timestamp: Long = System.currentTimeMillis / 1000
 				  if(outputformat == "parquet") {
-					  	//val test_json = JSON.parseFull(rdd.map(_._2).toString())
-					  	//test_json match {
-  							//case None => rdd.map(_._2).saveAsTextFile(destinationUrl+"malformed_json_data/data-"+timestamp+".txt")
-  							//case Some(e) => 
   							try {
 					  	  						val json_rdd = sqlContext.jsonRDD(rdd.map(_._2))
 				  		  						val df = json_rdd.toDF()
@@ -92,24 +88,75 @@ object KafkaHDFSSink{
 
 			  									} catch {
 														case NonFatal(t) => rdd.map(_._2).saveAsTextFile(destinationUrl+"unknown_schema/data-"+timestamp+".json")
-														//sqlContext.jsonRDD(rdd.map(_._2)).toDF().write.mode("append").parquet(destinationUrl+"malformed_schema_parquet/data-"+timestamp)
 														}
-										}	
-					//}
+								}
+			 	  if(outputformat == "avro") {
+				  			try {
+			  									val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
+			  	  								val df = json_rdd.toDF()
+												
 
+												//define table as String
+				  		  						val table_name_array = df.select("@table").limit(1).collect()
+				  		  						val table_name_string = table_name_array(0).toString().stripPrefix("[").stripSuffix("]").trim
+				  		  						//define schema_version as String
+				  		  						val schema_version_array = df.select("@schema_version").limit(1).collect()
+				  		  						val schema_version_string = schema_version_array(0).toString().stripPrefix("[").stripSuffix("]").trim
+				  		  						//define p_key as String
+				  		  						val primarykey_array = df.select("@p_key").limit(1).collect()
+				  		  						val primarykey_string = primarykey_array(0).toString().stripPrefix("[").stripSuffix("]").trim
+				  		  						//define updated as String
+				  		  						val updated_array = df.select("@update").limit(1).collect()
+				  		  						val updated_string = updated_array(0).toString().stripPrefix("[").stripSuffix("]").trim
 
-					
-			 	if(outputformat == "avro") {
-				  	try {
-			  			val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
-			  	  		val df = json_rdd.toDF()
-			  	  		df.write.mode("append").avro(destinationUrl+topic)
+				  		  						//if record is an update, upload latest timestamp in small table
+				  		  						if (updated_string == "1") {
+				  		  							df.select(primarykey_string, "@timestamp").write.mode("append").avro(destinationUrl+table_name_string+"/updated_records")
+				  		  							val updated_timestamp = sqlContext.read.avro(destinationUrl+table_name_string+"/updated_records").groupBy(primarykey_string).agg(max("@timestamp") as "@timestamp")
+				  		  							updated_timestamp.write.mode("overwrite").avro(destinationUrl+table_name_string+"/updated_records")
+				  		  						} else {
+				  		  							df.select(primarykey_string, "@timestamp").write.mode("append").avro(destinationUrl+table_name_string+"/updated_records")
+				  		  						}
+
+				  		  						//write main Dataframe to avro
+				  		  						df.write.mode("append").avro(destinationUrl+table_name_string+"/schema-version-"+schema_version_string)
 		  	  			} catch {
-						case NonFatal(t) => println("Waiting for more data")
+												case NonFatal(t) => rdd.map(_._2).saveAsTextFile(destinationUrl+"unknown_schema/data-"+timestamp+".json")
 						}
 					}
-				if(outputformat == "json") {
-  				  	rdd.map(_._2).saveAsTextFile(destinationUrl+topic+"/clickstream-"+timestamp+".json")
+				  if(outputformat == "json") {
+  				  					try {
+			  									val json_rdd =  sqlContext.jsonRDD(rdd.map(_._2))
+			  	  								val df = json_rdd.toDF()
+												
+
+												//define table as String
+				  		  						val table_name_array = df.select("@table").limit(1).collect()
+				  		  						val table_name_string = table_name_array(0).toString().stripPrefix("[").stripSuffix("]").trim
+				  		  						//define schema_version as String
+				  		  						val schema_version_array = df.select("@schema_version").limit(1).collect()
+				  		  						val schema_version_string = schema_version_array(0).toString().stripPrefix("[").stripSuffix("]").trim
+				  		  						//define p_key as String
+				  		  						val primarykey_array = df.select("@p_key").limit(1).collect()
+				  		  						val primarykey_string = primarykey_array(0).toString().stripPrefix("[").stripSuffix("]").trim
+				  		  						//define updated as String
+				  		  						val updated_array = df.select("@update").limit(1).collect()
+				  		  						val updated_string = updated_array(0).toString().stripPrefix("[").stripSuffix("]").trim
+
+				  		  						//if record is an update, upload latest timestamp in small table
+				  		  						if (updated_string == "1") {
+				  		  							df.select(primarykey_string, "@timestamp").write.mode("append").json(destinationUrl+table_name_string+"/updated_records")
+				  		  							val updated_timestamp = sqlContext.read.json(destinationUrl+table_name_string+"/updated_records").groupBy(primarykey_string).agg(max("@timestamp") as "@timestamp")
+				  		  							updated_timestamp.write.mode("overwrite").json(destinationUrl+table_name_string+"/updated_records")
+				  		  						} else {
+				  		  							df.select(primarykey_string, "@timestamp").write.mode("append").json(destinationUrl+table_name_string+"/updated_records")
+				  		  						}
+
+				  		  						//write main Dataframe to avro
+				  		  						df.write.mode("append").json(destinationUrl+table_name_string+"/schema-version-"+schema_version_string)
+		  	  			} catch {
+						case NonFatal(t) => rdd.map(_._2).saveAsTextFile(destinationUrl+"unknown_schema/data-"+timestamp+".json")
+						}
 					}
 		}
     })
