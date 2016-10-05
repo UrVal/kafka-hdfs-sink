@@ -33,11 +33,13 @@ It takes the following input parameters when lunching the Spark Job:
 In order to cope with the updated records the consumer also outputs a table with the primary key and latest timestamp. This can be used for a compaction batch job that can drop the old records from the main data in HDFS. 
 
 To compile use:
+
 <code>
 sbt package
 </code>
 
 To submit this job use:
+
 <code>
 spark-submit --name KafkaHDFSSink --class KafkaHDFSSink  --packages org.apache.spark:spark-streaming-kafka_2.10:1.6.1 /tmp/kafka-consumer-serializer_2.10-1.0.jar BROKER_FQDN_1:9092,BROKER_FQDN_2:9092,BROKER_FQDN_N:9092 TOPIC_NAME <HDFS:///path/to/write/files> smallest parquet
 </code>
