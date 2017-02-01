@@ -12,7 +12,7 @@ import scala.util.control.NonFatal
 object KafkaHDFSSink{
 
   def main(args: Array[String]): Unit = {
-   if (args.length != 5) {
+   if (args.length != 6) {
       System.err.println(s"""
         |Usage: KafkaHDFSSink <brokers> <topics> <destination-url> <offset_to_start_from> <outputformat>
         |  <brokers> is a list of one or more Kafka brokers
@@ -20,6 +20,7 @@ object KafkaHDFSSink{
         |  <destination-url> is the url prefix (eg:in hdfs) into which to save the fragments. Fragment names will be suffixed with the timestamp. The fragments are directories.(eg: hdfs:///temp/kafka_files/)  
         |  <offset_to_start_from> is the position from where the comsumer should start to receive data. Choose between: smallest and largest
 		|  <output_format> is the file format to output the files to. Choose between: parquet, avro and json.
+		|  <time> represents the number of seconds between succesive reads from the kafka topic
 		""".stripMargin)
       System.exit(1)
     }
@@ -34,12 +35,12 @@ object KafkaHDFSSink{
       .set("spark.streaming.unpersist", "true")
 	  //.set("spark.driver.allowMultipleContexts", "true")
 
-     val Array(brokers, topics, destinationUrl, offset, outputformat) = args
+     val Array(brokers, topics, destinationUrl, offset, outputformat, streamtime) = args
 
 
     val sparkConf = new SparkConf().setAppName("KafkaConsumer_"+topics)
     val sc = new SparkContext(sparkConf)
-	val ssc = new StreamingContext(sc, Seconds(2))
+	val ssc = new StreamingContext(sc, Seconds(streamtime))
 	//SparkSQL
 	val sqlContext = new SQLContext(sc)
 	
@@ -77,7 +78,7 @@ object KafkaHDFSSink{
 		}
     })
 
-    ssc.checkpoint("hdfs:///"+topics+"__checkpoint")
+    //ssc.checkpoint("hdfs:///"+topics+"__checkpoint")
 
     ssc.start()
     ssc.awaitTermination()
