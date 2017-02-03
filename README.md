@@ -14,9 +14,13 @@ sbt package
 This application takes 6 parameters:
 
 BROKERS: List of Kafka Brokers with port number and splited with comma
+
 DESTINATION URL: Location to save the files. Can be any supported filesystem location: FILE, HDFS, Bigstep Datalake etc.
+
 KAFKA TOPIC OFFSET: Where should the broker start reading events. (smallest or latest)
+
 OUTPUT FORMAT: What format should the data be written into. CHose between: parquet, avro and json.
+
 TIME: Number of seconds between succesive reads from the kafka topic.
 
 To submit this job use:
