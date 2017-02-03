@@ -35,8 +35,8 @@ object KafkaHDFSSink{
       .set("spark.streaming.unpersist", "true")
 	  //.set("spark.driver.allowMultipleContexts", "true")
 
-     val Array(brokers, topics, destinationUrl, offset, outputformat, streamtime) = args
-
+     val Array(brokers, topics, destinationUrl, offset, outputformat, time_string) = args
+     val streamtime = time_string.toLong
 
     val sparkConf = new SparkConf().setAppName("KafkaConsumer_"+topics)
     val sc = new SparkContext(sparkConf)
